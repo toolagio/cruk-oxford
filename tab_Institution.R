@@ -92,7 +92,7 @@ output$institution_displayed_network <- renderVisNetwork({
         ksmax = 20, # limits speed
         # autostab parameters can't be found
         gravity = 0.1,
-        iterations = 400,
+        iterations = 200,
         nohubs = FALSE,
         randomSeed = 8
         # linlog = TRUE
@@ -209,14 +209,14 @@ output$institution_selected_node_sidePanel <- renderUI({
           )[which(V(institution_graph())$name == input$institution_displayed_network_selected)]), digits = 4)
         )),
         
-        actionButton("scroll_down", "Scroll down for details", width = "100%")
+        actionButton("scroll_down_institution", "Scroll down for details", width = "100%")
       )
     },
     destructive_Change = return()
   )
 })
 
-observeEvent(input$scroll_down, {
+observeEvent(input$scroll_down_institution, {
   session$sendCustomMessage(type = "scrollDown", 1)
 })
 

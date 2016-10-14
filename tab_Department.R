@@ -270,14 +270,14 @@ output$department_selected_node_sidePanel <- renderUI({
           )[which(V(department_graph())$name == input$department_displayed_network_selected)]), digits = 4)
         )),
         
-        actionButton("scroll_down", "Scroll down for details", width = "100%")
+        actionButton("scroll_down_department", "Scroll down for details", width = "100%")
       )
     },
     destructive_Change = return()
   )
 })
 
-observeEvent(input$scroll_down, {
+observeEvent(input$scroll_down_department, {
   session$sendCustomMessage(type = "scrollDown", 1)
 })
 

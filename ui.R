@@ -30,7 +30,15 @@ library(shinyBS)
 library(shinyjs)
 
 shinyUI(navbarPage(
-  tags$head(tags$script(src="iframeResizer.js"),tags$link(rel = "stylesheet", type = "text/css", href = "https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.5.2/animate.min.css")),
+  tags$head(tags$script(src="iframeResizer.js"),tags$link(rel = "stylesheet", type = "text/css", href = "https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.5.2/animate.min.css"), tags$script(
+    '
+    Shiny.addCustomMessageHandler("scrollDown",
+    function(color) {
+    var y = $(window).scrollTop();  //your current y position on the page
+    $(window).scrollTop(y+200);
+    }
+    );'
+    )),
   "",
   tabPanel(
     "Welcome",
@@ -40,17 +48,6 @@ shinyUI(navbarPage(
     "Centre",
     fluidPage(useShinyjs(),
               inlineCSS(appCSS),
-      tags$head(
-        tags$script(
-          '
-          Shiny.addCustomMessageHandler("scrollDown",
-          function(color) {
-          var y = $(window).scrollTop();  //your current y position on the page
-          $(window).scrollTop(y+200);
-          }
-          );'
-    )
-        ),
     wellPanel(
       "Collaboration overview for the entire institution, see elsewhere (LINKS) for department/person overview"
     ),
@@ -103,17 +100,6 @@ shinyUI(navbarPage(
   tabPanel(
     "Department",
     fluidPage(
-      tags$head(
-        tags$script(
-          '
-          Shiny.addCustomMessageHandler("scrollDown",
-          function(color) {
-          var y = $(window).scrollTop();  //your current y position on the page
-          $(window).scrollTop(y+200);
-          }
-          );'
-    )
-        ),
     uiOutput("select_department_UI"),
     uiOutput("department_app_title"),
     uiOutput("department_app_description"),

@@ -11,14 +11,14 @@
 appCSS <- "
 #loading-content {
 position: absolute;
-background: #000000;
+background: #FFFFFF;
 opacity: 0.9;
 z-index: 100;
 left: 0;
 right: 0;
 height: 100%;
 text-align: center;
-color: #FFFFFF;
+color: #000000;
 }
 "
 
@@ -30,7 +30,7 @@ library(shinyBS)
 library(shinyjs)
 
 shinyUI(navbarPage(
-  tags$head(tags$script(src="iframeResizer.js")),
+  tags$head(tags$script(src="iframeResizer.js"),tags$link(rel = "stylesheet", type = "text/css", href = "https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.5.2/animate.min.css")),
   "",
   tabPanel(
     "Welcome",
@@ -83,7 +83,9 @@ shinyUI(navbarPage(
       column(
         div(
           id = "loading-content",
-          h2("Computing fancy forceatlas2 layout")
+          fluidPage(
+            h2(class = "animated infinite pulse","Gathering data for network..."),
+            HTML("<img src=images/cruk-logo.png width='50%'></img>"))
         ),
         visNetworkOutput("institution_displayed_network", width = "100%"),
         actionButton("institution_refocus_network", "Refocus Network", width = "100%"),

@@ -20,8 +20,20 @@ output$PI_people_directory <- DT::renderDataTable({
     select(id) %>%
     count(id)
   
-  left_join(pi_directory, pubs_per_author) %>%
+  pi_directory <- left_join(pi_directory, pubs_per_author) %>%
+    mutate(
+      Degree = revalue(name, degree(institution_igraph)),
+      Betweeness = revalue(name, betweenness(institution_igraph)),
+      Closeness = revalue(name, round(closeness(institution_igraph), digits = 4))
+    )
+  
+  ## Beautify 
+  pi_directory %>%
     select(-id, -institution) %>%
     rename(interactions.in.database = n) %>%
-    arrange(name)
-})
+    arrange(name) %>%
+    rename_("Name" = "name", "Department" = "department", "Interactions in Database" = "interactions.in.database")
+  
+}, rownames = FALSE,escape = FALSE,
+extensions = "Responsive",
+options = list("language" = list("sSearch" = "Filter:")))

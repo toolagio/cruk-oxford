@@ -16,7 +16,7 @@ output$select_department_UI <- renderUI(
   selectInput(
     "selected_department",
     label = "Select Department",
-    choices = unique(institution_nodes$department),
+    choices = sort(unique(institution_nodes$department)),
     width = "100%"
   )
 )
@@ -81,7 +81,13 @@ output$department_app_collapsile_info <- renderUI({
 ## ==============================================================================
 
 output$department_people_directory_DT <- DT::renderDataTable({
-  institution_nodes[institution_nodes$department == input$selected_department, c("name", "institution", "department")]
+  # institution_nodes[institution_nodes$department == input$selected_department, c("name", "institution", "department")]
+  # 
+  institution_nodes %>%
+    filter(department == input$selected_department) %>%
+    select(name, institution, department) %>%
+    arrange(name)
+  
 }, rownames = FALSE,
 # filter = FALSE,
 escape = FALSE,

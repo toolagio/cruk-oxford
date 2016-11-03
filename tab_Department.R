@@ -210,7 +210,7 @@ output$department_highchart_node_legened <- renderHighchart(
 
 
 output$department_displayed_network <- renderVisNetwork({
-  department_graph <- department_graph()
+  department_graph <- as.undirected(department_graph())
   
   visIgraph(department_graph,
             idToLabel = F,

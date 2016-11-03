@@ -21,7 +21,7 @@ output$PI_people_directory <- DT::renderDataTable({
     count(id)
   
   left_join(pi_directory, pubs_per_author) %>%
-    select(-id) %>%
+    select(-id, -institution) %>%
     rename(interactions.in.database = n) %>%
     arrange(name)
 })

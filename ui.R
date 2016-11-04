@@ -29,134 +29,145 @@ library(highcharter)
 library(shinyBS)
 library(shinyjs)
 
-shinyUI(navbarPage(
-  tags$head(tags$script(src="iframeResizer.js"),tags$link(rel = "stylesheet", type = "text/css", href = "https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.5.2/animate.min.css"), tags$script(
-    '
-    Shiny.addCustomMessageHandler("scrollDown",
-    function(color) {
-    var y = $(window).scrollTop();  //your current y position on the page
-    $(window).scrollTop(y+200);
-    }
-    );'
-    )),
-  "",
-  tabPanel(
-    "Welcome",
-    fluidPage("Welcome to the CRUK Collaboration Network explorer")
-  ),
-  tabPanel(
-    "Centre",
-    fluidPage(useShinyjs(),
-              inlineCSS(appCSS),
-    wellPanel(
-      "Collaboration overview for the entire institution, see elsewhere (LINKS) for department/person overview"
+shinyUI(
+  navbarPage(
+    tags$head(
+      tags$script(src = "iframeResizer.js"),
+      tags$link(rel = "stylesheet", type = "text/css", href = "https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.5.2/animate.min.css"),
+      tags$script(
+        '
+        Shiny.addCustomMessageHandler("scrollDown",
+        function(color) {
+        var y = $(window).scrollTop();  //your current y position on the page
+        $(window).scrollTop(y+200);
+        }
+        );'
     ),
-    bsCollapse(
-      id = "collapseExample",
-      open = NULL,
-      bsCollapsePanel(HTML(
-        paste0(
-          '<span class="glyphicon glyphicon-plus" aria-hidden="true"></span>',
-          "Institution Overview (click to expand)"
-        )
+    tags$link(rel = "stylesheet", type = "text/css", href = "tooltip.css")
       ),
+    "",
+    tabPanel(
+      "Welcome",
       fluidPage(
-        uiOutput("institution_app_collapsile_info")
-      ), style = "primary")
+        "Welcome to the CRUK Collaboration Network explorer"
+      )
     ),
-    fluidRow(
-      column(
+    tabPanel(
+      "Centre",
+      fluidPage(
+        useShinyjs(),
+        inlineCSS(appCSS),
         wellPanel(
-          selectInput(
-            "institution_people_or_departments",
-            label = "Display:",
-            choices = c("individuals", "departments")
+          "Collaboration overview for the entire institution, see elsewhere (LINKS) for department/person overview"
+        ),
+        bsCollapse(
+          id = "collapseExample",
+          open = NULL,
+          bsCollapsePanel(HTML(
+            paste0(
+              '<span class="glyphicon glyphicon-plus" aria-hidden="true"></span>',
+              "Institution Overview (click to expand)"
+            )
+          ),
+          fluidPage(
+            uiOutput("institution_app_collapsile_info")
+          ), style = "primary")
+        ),
+        fluidRow(
+          column(
+            wellPanel(
+              selectInput(
+                "institution_people_or_departments",
+                label = "Display:",
+                choices = c("individuals", "departments")
+              )
+            ),
+            uiOutput("insitution_displayed_network_properties"),
+            uiOutput("institution_selected_node_sidePanel"),
+            width = 4
+          ),
+          column(
+            div(id = "loading-content",
+                fluidPage(
+                  h2(class = "animated infinite pulse", "Gathering data for network..."),
+                  HTML("<img src=images/cruk-logo.png width='50%'></img>")
+                )),
+            visNetworkOutput("institution_displayed_network", width = "100%"),
+            actionButton("institution_refocus_network", "Refocus Network", width = "100%"),
+            width = 8
           )
         ),
-        uiOutput("insitution_displayed_network_properties"),
-        uiOutput("institution_selected_node_sidePanel"),
-        width = 4
-      ),
-      column(
-        div(
-          id = "loading-content",
-          fluidPage(
-            h2(class = "animated infinite pulse","Gathering data for network..."),
-            HTML("<img src=images/cruk-logo.png width='50%'></img>"))
-        ),
-        visNetworkOutput("institution_displayed_network", width = "100%"),
-        actionButton("institution_refocus_network", "Refocus Network", width = "100%"),
-        width = 8
+        highchartOutput("institution_highchart_node_legened", height = "150px"),
+        uiOutput("institution_selected_node_table_UI")
+        # wellPanel(
+        #   DT::dataTableOutput("selected_node_table")
+        # )
+        
       )
     ),
-    highchartOutput("institution_highchart_node_legened", height = "150px"),
-    uiOutput("institution_selected_node_table_UI")
-    # wellPanel(
-    #   DT::dataTableOutput("selected_node_table")
-    # )
-    
-      )
-  ),
-  tabPanel(
-    "Department",
-    fluidPage(
-    uiOutput("select_department_UI"),
-    uiOutput("department_app_title"),
-    uiOutput("department_app_description"),
-    bsCollapse(
-      id = "collapseExample",
-      open = NULL,
-      bsCollapsePanel(HTML(
-        paste0(
-          '<span class="glyphicon glyphicon-plus" aria-hidden="true"></span>',
-          " Deparment Overview (click to expand)"
-        )
-      ),
+    tabPanel(
+      "Department",
       fluidPage(
-        uiOutput("department_app_collapsile_info")
-      ), style = "primary")
-    ),
-    tabsetPanel(
-      tabPanel(
-        "People Directory",
-        uiOutput("department_people_directory_UI")
-      ),
-      tabPanel(
-        "Department Collaboration Network",
-        fluidPage(
-          fluidRow(
-            column(
-              selectInput(
-                "people_or_departments",
-                "Show?",
-                choices = c("within department", "within whole network")
-              ),
-              uiOutput("department_network_edge_degree_UI"),
-              uiOutput("department_selected_node_sidePanel"),
-              width = 4
-            ),
-            column(visNetworkOutput("department_displayed_network"),
-                   actionButton("department_refocus_network", "Refocus Network", width = "100%"),
-                   width = 8)
+        uiOutput("select_department_UI"),
+        uiOutput("department_app_title"),
+        uiOutput("department_app_description"),
+        bsCollapse(
+          id = "collapseExample",
+          open = NULL,
+          bsCollapsePanel(HTML(
+            paste0(
+              '<span class="glyphicon glyphicon-plus" aria-hidden="true"></span>',
+              " Deparment Overview (click to expand)"
+            )
           ),
-          highchartOutput("department_highchart_node_legened", height = "150px"),
-          uiOutput("department_selected_node_table_UI")
+          fluidPage(
+            uiOutput("department_app_collapsile_info")
+          ), style = "primary")
+        ),
+        tabsetPanel(
+          tabPanel(
+            "People Directory",
+            uiOutput("department_people_directory_UI")
+          ),
+          tabPanel(
+            "Department Collaboration Network",
+            fluidPage(
+              fluidRow(
+                column(
+                  selectInput(
+                    "people_or_departments",
+                    "Show?",
+                    choices = c("within department", "within whole network")
+                  ),
+                  uiOutput("department_network_edge_degree_UI"),
+                  uiOutput("department_selected_node_sidePanel"),
+                  width = 4
+                ),
+                column(
+                  visNetworkOutput("department_displayed_network"),
+                  actionButton("department_refocus_network", "Refocus Network", width = "100%"),
+                  width = 8
+                )
+              ),
+              highchartOutput("department_highchart_node_legened", height = "150px"),
+              uiOutput("department_selected_node_table_UI")
+            )
+          )
         )
       )
-    )
-      )
     ),
-  tabPanel(
-    "Principal Investigators",
-    fluidPage(
-      wellPanel(
-        "This page provides a directory of all PIs in the institution, note that at present the data is quite minimal as we are awaiting in change in the structure of data to make it easier for all of an individual's interactions to be seen at once. For demonstrative purposes, a computation of the number of interactions in database has been made and is displayed below."
-      ),
-      DT::dataTableOutput("PI_people_directory")
+    tabPanel(
+      "Principal Investigators",
+      fluidPage(
+        wellPanel(
+          "This page provides a directory of all PIs in the institution, note that at present the data is quite minimal as we are awaiting in change in the structure of data to make it easier for all of an individual's interactions to be seen at once. For demonstrative purposes, a computation of the number of interactions in database has been made and is displayed below."
+        ),
+        DT::dataTableOutput("PI_people_directory")
+      )
     )
+    
+    
+    ,
+    collapsible = TRUE
   )
-  
-  
-  ,
-  collapsible = TRUE
-  ))
+  )

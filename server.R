@@ -19,6 +19,8 @@ library(DT)
 library(highcharter)
 library(tidyr)
 library(shinyjs)
+library(jsonlite)
+library(tidyjson)
 
 source("shared_graph_functions.R", local = T)
 source("beautification.R", local = T)

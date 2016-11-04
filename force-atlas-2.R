@@ -106,4 +106,57 @@ shinyApp(
 institution_visN <- toVisNetworkData(institution_igraph)
 visNetwork(nodes = institution_visN$nodes, edges = institution_visN$edges)
 
+## === Dump
+
+
+test_department_graph <- as.undirected(contract_instition_network(institution_igraph))
+
+network <- visIgraph(
+  test_department_graph,
+  idToLabel = FALSE,
+  randomSeed = 10,
+  layout = "layout.forceatlas2",
+  directed = FALSE,
+  k = 800, # repulsion
+  delta = 10, # attraction
+  ks = 15, # speed constant
+  ksmax = 20, # limits speed
+  # autostab parameters can't be found
+  gravity = 10,
+  iterations = 300,
+  nohubs = TRUE
+  # linlog = TRUE
+)
+
+visIgraph(as.undirected(institution_igraph)) %>%
+  visOptions(highlightNearest = TRUE,
+             nodesIdSelection = list(enabled = TRUE)
+             # values = sort(unlist(V(institution_graph)$name)))
+  ) %>%
+  visPhysics(
+    minVelocity = 1,
+    solver = "forceAtlas2Based",
+    forceAtlas2Based = list(
+      gravitationalConstant = -10,
+      avoidOverlap = 0.8,
+      centralGravity = 30),
+    stabilization = list(
+      "enabled" = FALSE,
+      iterations = 1000,
+      "fit" = TRUE
+    )) %>%
+  visInteraction(dragNodes = FALSE) %>%
+  visEdges(smooth = list("enabled" = TRUE,
+                         "type" = "curvedCCW"))
+
+
+nodes <- data.frame(id = 1:10)
+edges <- data.frame(from = round(runif(8)*10), to = round(runif(8)*10))
+
+visNetwork(nodes, edges) %>%
+  visPhysics(solver = "repulsion")
+
+visNetwork(nodes, edges) %>%
+  visPhysics(solver = "forceAtlas2Based", forceAtlas2Based = list(gravitationalConstant = -10))
+
 

@@ -55,6 +55,8 @@ institution_graph <-
                   }
                 ))
 
+reactive_test_institution_refocus <- 
+
 output$institution_displayed_network <- renderVisNetwork({
   institution_graph <- as.undirected(institution_graph())
   
@@ -63,24 +65,6 @@ output$institution_displayed_network <- renderVisNetwork({
   switch (
     input$institution_people_or_departments,
     "individuals" = {
-      # invisible(
-      #   network <- visIgraph(
-      #     institution_graph,
-      #     idToLabel = FALSE,
-      #     randomSeed = 1,
-      #     layout = "layout.forceatlas2",
-      #     directed = FALSE,
-      #     k = 500, # repulsion
-      #     delta = 30, # attraction
-      #     ks = 10, # speed constant
-      #     ksmax = 20, # limits speed
-      #     # autostab parameters can't be found
-      #     gravity = 30,
-      #     iterations = 200,
-      #     nohubs = FALSE
-      #     # linlog = TRUE
-      #   )
-      # )
       invisible(network <- visIgraph(
         # as.undirected(departments_g),
         as.undirected(institution_graph),
@@ -97,44 +81,61 @@ output$institution_displayed_network <- renderVisNetwork({
         randomSeed = 8
         # linlog = TRUE
       ))
+      
+      hide(id = "loading-content", anim = TRUE, animType = "fade")
+      
+      network %>%
+        visOptions(highlightNearest = TRUE,
+                   nodesIdSelection = list(enabled = TRUE)
+                   # values = sort(unlist(V(institution_graph)$name)))
+        ) %>%
+        visLayout(hierarchical = FALSE) %>%
+        visInteraction(dragNodes = FALSE) %>%
+        # visEdges(smooth = list("enabled" = TRUE,
+        #                        "type" = "curvedCCW")) %>%
+        visEvents(selectNode = "function(nodes) {
+                  Shiny.onInputChange('current_node_id', nodes);
+                  ;}")
+      
     },
     "departments" = {
       invisible(
         network <- visIgraph(
           institution_graph,
-          idToLabel = FALSE,
-          randomSeed = 1,
-          layout = "layout.forceatlas2",
-          directed = FALSE,
-          k = 500, # repulsion
-          delta = 30, # attraction
-          ks = 10, # speed constant
-          ksmax = 20, # limits speed
-          # autostab parameters can't be found
-          gravity = 30,
-          iterations = 200,
-          nohubs = FALSE
-          # linlog = TRUE
+          idToLabel = FALSE
         )
       )
+      
+      hide(id = "loading-content", anim = TRUE, animType = "fade")
+      
+      network %>%
+        visOptions(highlightNearest = TRUE,
+                   nodesIdSelection = list(enabled = TRUE)
+                   # values = sort(unlist(V(institution_graph)$name)))
+        ) %>%
+        visPhysics(
+          minVelocity = 1,
+          solver = "forceAtlas2Based",
+          forceAtlas2Based = list(
+            gravitationalConstant = -10,
+            avoidOverlap = 0.8,
+            centralGravity = 30),
+          stabilization = list(
+            "enabled" = FALSE
+          )) %>%
+        visLayout(hierarchical = FALSE) %>%
+        visInteraction(dragNodes = FALSE) %>%
+        # visEdges(smooth = list("enabled" = TRUE,
+        #                        "type" = "curvedCCW")) %>%
+        visEvents(selectNode = "function(nodes) {
+                  Shiny.onInputChange('current_node_id', nodes);
+                  ;}")
     }
     
   )
   
-  hide(id = "loading-content", anim = TRUE, animType = "fade")
-  
-  
-  network %>%
-    visOptions(highlightNearest = TRUE,
-               nodesIdSelection = list(enabled = TRUE)) %>%
-    visLayout(hierarchical = FALSE) %>%
-    visInteraction(dragNodes = FALSE) %>%
-    visEdges(smooth = list("enabled" = TRUE,
-                           "type" = "curvedCCW")) %>%
-    visEvents(selectNode = "function(nodes) {
-              Shiny.onInputChange('current_node_id', nodes);
-              ;}")
   })
+
 output$institution_displayed_network_properties <- renderUI({
   wellPanel(p(paste0(
     "Average path length: ", round(average.path.length(institution_graph()), 2)
@@ -143,6 +144,12 @@ output$institution_displayed_network_properties <- renderUI({
     "Number of nodes: ", vcount(institution_graph())
   )))
 })
+
+observeEvent(
+  input$institution_people_or_departments,
+  visNetworkProxy("institution_displayed_network") %>%
+    visFit(nodes = NULL, animation = list(duration = 500))
+)
 
 observeEvent(
   input$institution_refocus_network,
@@ -194,17 +201,19 @@ output$institution_selected_node_sidePanel <- renderUI({
         
         
         p(paste0(
-          "Vertex Degree: ", as.numeric(degree(institution_graph())[which(V(institution_graph())$name == input$institution_displayed_network_selected)])
+          "Degree: ", as.numeric(degree(institution_graph())[which(V(institution_graph())$name == input$institution_displayed_network_selected)])
         )),
         
         p(paste0(
-          "Vertex Betweeness: ", round(as.numeric(betweenness(
+          "Betweeness: ", round(as.numeric(betweenness(
             institution_graph()
           )[which(V(institution_graph())$name == input$institution_displayed_network_selected)]), digits = 4)
         )),
+      
+        
         
         p(paste0(
-          "Vertex Closeness: ", round(as.numeric(closeness(
+          "Closeness: ", round(as.numeric(closeness(
             institution_graph()
           )[which(V(institution_graph())$name == input$institution_displayed_network_selected)]), digits = 4)
         )),

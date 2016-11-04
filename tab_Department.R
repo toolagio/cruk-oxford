@@ -83,10 +83,19 @@ output$department_app_collapsile_info <- renderUI({
 output$department_people_directory_DT <- DT::renderDataTable({
   # institution_nodes[institution_nodes$department == input$selected_department, c("name", "institution", "department")]
   # 
+  
+  department_graph <- as.undirected(department_graph())
+  
   institution_nodes %>%
     filter(department == input$selected_department) %>%
-    select(name, institution, department) %>%
-    arrange(name)
+    select(name, department) %>%
+    arrange(name) %>%
+    mutate(
+      Degree = revalue(name, degree(department_graph)),
+      Betweeness = revalue(name, betweenness(department_graph)),
+      Closeness = revalue(name, round(closeness(department_graph), digits = 4))
+    ) %>%
+    rename(Name = name, Department = department)
   
 }, rownames = FALSE,
 # filter = FALSE,
@@ -261,17 +270,17 @@ output$department_selected_node_sidePanel <- renderUI({
         
         
         p(paste0(
-          "Vertex Degree: ", as.numeric(degree(department_graph())[which(V(department_graph())$name == input$department_displayed_network_selected)])
+          "Degree: ", as.numeric(degree(department_graph())[which(V(department_graph())$name == input$department_displayed_network_selected)])
         )),
         
         p(paste0(
-          "Vertex Betweeness: ", round(as.numeric(betweenness(
+          "Betweeness: ", round(as.numeric(betweenness(
             department_graph()
           )[which(V(department_graph())$name == input$department_displayed_network_selected)]), digits = 4)
         )),
         
         p(paste0(
-          "Vertex Closeness: ", round(as.numeric(closeness(
+          "Closeness: ", round(as.numeric(closeness(
             department_graph()
           )[which(V(department_graph())$name == input$department_displayed_network_selected)]), digits = 4)
         )),
@@ -327,15 +336,13 @@ department_within_department_table <- reactive({
       to = institution_nodes$name,
       warn_missing = FALSE
     )
-  select(
-    subsetted_edges,
-    from,
-    to,
-    collaborations,
-    title,
-    publication.name,
-    publication.date
-  )
+  
+  subsetted_edges %>%
+    select(from,
+           to,
+           title,
+           publication.name,
+           publication.date)
 })
 
 department_within_whole_table <- reactive({
@@ -373,15 +380,13 @@ department_within_whole_table <- reactive({
       to = institution_nodes$name,
       warn_missing = FALSE
     )
-  select(
-    subsetted_edges,
-    from,
-    to,
-    collaborations,
-    title,
-    publication.name,
-    publication.date
-  )
+  
+  subsetted_edges %>%
+    select(from,
+           to,
+           title,
+           publication.name,
+           publication.date)
 })
 
 output$department_selected_node_table <- DT::renderDataTable({

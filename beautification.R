@@ -42,3 +42,5 @@ highchart_legend <-
     ## Return
     chart
   }
+
+highchart_legend()

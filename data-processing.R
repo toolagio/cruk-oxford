@@ -11,19 +11,33 @@
 
 institution_nodes <-
   read.csv("data/ox-ox-nodes.csv", stringsAsFactors = F)
-institution_edges <-
-  read.csv("data/ox-ox-edges.csv", stringsAsFactors = F)
+# institution_edges <-
+#   read.csv("data/ox-ox-edges.csv", stringsAsFactors = F)
+
+
+institution_edges <- readLines("data/ox-ox-edges.json", warn = F) %>%
+  gather_array() %>%
+  spread_values(from = jstring("Source")) %>% ## visNetwork wants from and to not source and target
+  spread_values(to = jstring("Target")) %>% ## visNetwork wants from and to not source and target
+  spread_values(collaborations = jstring("Collaborations")) %>%
+  enter_object("authorships") %>% 
+  gather_array() %>%
+  spread_values(title = jstring("Title")) %>%
+  spread_values(coauthors = jstring("Co-authors")) %>%
+  spread_values(publication.name = jstring("Publication Name")) %>%
+  spread_values(weights = jstring("Weights")) %>%
+  spread_values(keywords = jstring("Keywords")) %>%
+  spread_values(publication.type = jstring("Publication Type")) %>%
+  spread_values(publication.date = jstring("Publication Date")) %>%
+  select(from, to, title, coauthors, publication.name, weights, keywords, publication.type, publication.date)
+
+
 
 
 ## colnames need to be lower case
-colnames(institution_edges) <- tolower(colnames(institution_edges))
 colnames(institution_nodes) <- tolower(colnames(institution_nodes))
-## visNetwork wants from and to not source and target
-colnames(institution_edges)[colnames(institution_edges) == c("source", "target")] <-
-  c("from", "to")
 ## the vertex tooltip is added by way of the title column:
 institution_nodes$title <- institution_nodes$name
-
 institution_nodes$title[duplicated(institution_nodes$title)]
 
 ## =========================== Duplicate Names ==================================
@@ -78,6 +92,9 @@ department_colours <- data.frame(
   stringsAsFactors = F
 )
 
+department_colours %>%
+  arrange(department) -> department_colours
+
 institution_nodes$color <- mapvalues(institution_nodes$department, from = department_colours$department, to = department_colours$colours,warn_missing = FALSE)
 
 node_legend <-
@@ -94,13 +111,23 @@ node_legend <-
 ## =========================== igraph ===========================================
 ## ==============================================================================
 
+## id order matters for functionality including:
+## - ordering of selection
+## Mapping required to make reversible.
+
+
+
 institution_igraph <-
-  graph.data.frame(d = institution_edges[, 1:2], vertices = institution_nodes[, 1:2])
+  graph.data.frame(d = {
+    institution_edges %>%
+      select(from, to) %>%
+      unique()
+  }, vertices = institution_nodes[, 1:2])
 
 V(institution_igraph)$title <- institution_nodes$name
 V(institution_igraph)$id <- institution_nodes$id
 V(institution_igraph)$color <- institution_nodes$color
 V(institution_igraph)$department <- institution_nodes$department
 
-## =========================== Experiment ===========================================
-## ==============================================================================
+
+

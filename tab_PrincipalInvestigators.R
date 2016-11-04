@@ -12,15 +12,28 @@ output$PI_people_directory <- DT::renderDataTable({
   pi_directory <- institution_nodes %>%
     select(id, name, institution, department)
   
-  all_pubs <- institution_edges %>%
-    select(from, to, publication.type, publication.date, title, co.authors, keywords)
+  all_pubs <- institution_edges
   
   pubs_per_author <- all_pubs %>%
     gather(key, id, which(colnames(all_pubs) %in% c("from" ,"to"))) %>%
     select(id) %>%
     count(id)
   
-  left_join(pi_directory, pubs_per_author) %>%
-    select(-id) %>%
-    rename(interactions.in.database = n)
-})
+  pi_directory <- left_join(pi_directory, pubs_per_author) %>%
+    mutate(
+      Degree = revalue(name, degree(institution_igraph)),
+      Betweeness = revalue(name, betweenness(institution_igraph)),
+      Closeness = revalue(name, round(closeness(institution_igraph), digits = 4))
+    )
+  
+  colnames(pi_directory)
+  
+  ## Beautify 
+  pi_directory %>%
+    select(-id, -institution, -n) %>%
+    arrange(name) %>%
+    rename_("Name" = "name", "Department" = "department")
+  
+}, rownames = FALSE,escape = FALSE,
+extensions = "Responsive",
+options = list("language" = list("sSearch" = "Filter:")))

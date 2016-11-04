@@ -1,0 +1,75 @@
+---
+title: "Untitled"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Alphabetise id selection in networks
+
+This is more complicated than I would like it to be.
+
+To fix this I need t
+
+```{r}
+
+## id order matters for functionality including:
+## - ordering of selection
+## Mapping required to make reversible.
+
+test_institution_igraph <- institution_igraph
+
+as.numeric(mapvalues(
+  x = V(institution_igraph)$id,
+  from = V(institution_igraph)$id,
+  to = order(V(institution_igraph)$title)
+))
+
+V(institution_igraph)$title[order(V(institution_igraph)$title)] %>% head()
+
+test_institution_igraph <- permute.vertices(institution_igraph, order(V(institution_igraph)$title))
+
+V(test_institution_igraph)$id %>% head()
+
+V(test_institution_igraph)$title %>% head()
+
+vertices_df <- igraph::as_data_frame(test_institution_igraph, what = "vertices")
+
+colnames(vertices_df)
+rownames(vertices_df)
+
+### Force Sort
+
+manual_alpha_titles <- sort(V(institution_igraph)$title)
+
+manual_alpha_titles %>% head()
+
+V(institution_igraph)$title[order(V(institution_igraph)$title)] %>% head()
+
+```
+
+```{r}
+## =========================== Experiment ===========================================
+## ==============================================================================
+
+test_institution_nodes <- institution_nodes
+test_institution_edges <- institution_edges
+
+test_institution_nodes$cruk_id <- test_institution_nodes$id
+test_institution_nodes$id <- order(V(institution_igraph)$title)
+
+test_institution_edges %>% colnames()
+
+
+test_institution_igraph <-
+  graph.data.frame(d = test_institution_edges[, 1:2], vertices = test_institution_nodes[, 1:2])
+
+V(institution_igraph)$title <- institution_nodes$name
+V(institution_igraph)$id <- institution_nodes$id
+V(institution_igraph)$color <- institution_nodes$color
+V(institution_igraph)$department <- institution_nodes$department
+
+```
+
